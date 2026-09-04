@@ -4,15 +4,38 @@ import java.net.URI;
 
 import javax.sql.DataSource;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.beans.factory.annotation.Value;
 
 @Configuration
 @EnableConfigurationProperties(DataSourceProperties.class)
 public class DataSourceConfig {
+
+    public static String resolveDriverClassName(String configuredUrl) {
+        String url = configuredUrl == null ? "" : configuredUrl.trim();
+        if (url.startsWith("jdbc:postgresql://") || url.startsWith("postgresql://")) {
+            return "org.postgresql.Driver";
+        }
+        return "org.h2.Driver";
+    }
+
+    public static String resolveHibernateDialect(String configuredUrl) {
+        String url = configuredUrl == null ? "" : configuredUrl.trim();
+        if (url.startsWith("jdbc:postgresql://") || url.startsWith("postgresql://")) {
+            return "org.hibernate.dialect.PostgreSQLDialect";
+        }
+        return "org.hibernate.dialect.H2Dialect";
+    }
+
+    @Bean
+    HibernatePropertiesCustomizer hibernatePropertiesCustomizer(
+            @Value("${spring.datasource.url:}") String configuredUrl) {
+        return properties -> properties.put("hibernate.dialect", resolveHibernateDialect(configuredUrl));
+    }
 
     @Bean
     DataSource dataSource(
@@ -21,6 +44,8 @@ public class DataSourceConfig {
             @Value("${spring.datasource.username}") String configuredUsername,
             @Value("${spring.datasource.password}") String configuredPassword) {
         String url = configuredUrl;
+        properties.setDriverClassName(resolveDriverClassName(configuredUrl));
+
         if (url != null && (url.startsWith("postgresql://") || url.startsWith("jdbc:postgresql://"))) {
             String uri = url.startsWith("jdbc:") ? url.substring(5) : url;
             URI databaseUri = URI.create(uri);
