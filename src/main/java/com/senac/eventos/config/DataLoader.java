@@ -1,8 +1,11 @@
 package com.senac.eventos.config;
 
 import com.senac.eventos.model.Evento;
+import com.senac.eventos.model.Usuario;
 import com.senac.eventos.repository.EventoRepository;
+import com.senac.eventos.repository.UsuarioRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -11,9 +14,11 @@ import java.time.LocalDateTime;
 public class DataLoader implements CommandLineRunner {
 
     private final EventoRepository eventoRepository;
+    private final UsuarioRepository usuarioRepository;
 
-    public DataLoader(EventoRepository eventoRepository) {
+    public DataLoader(EventoRepository eventoRepository, UsuarioRepository usuarioRepository) {
         this.eventoRepository = eventoRepository;
+        this.usuarioRepository = usuarioRepository;
     }
 
     @Override
@@ -45,6 +50,15 @@ public class DataLoader implements CommandLineRunner {
             e3.setVagasTotais(100);
             e3.setVagasOcupadas(95);
             eventoRepository.save(e3);
+        }
+
+        if (usuarioRepository.findByEmailIgnoreCase("admin@eventos.com").isEmpty()) {
+            Usuario admin = new Usuario();
+            admin.setNome("Administrador");
+            admin.setEmail("admin@eventos.com");
+            admin.setSenha(new BCryptPasswordEncoder().encode("admin123"));
+            admin.setPerfil("ADMIN");
+            usuarioRepository.save(admin);
         }
     }
 }

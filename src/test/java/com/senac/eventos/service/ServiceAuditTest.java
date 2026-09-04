@@ -3,13 +3,16 @@ package com.senac.eventos.service;
 import com.senac.eventos.model.Evento;
 import com.senac.eventos.model.Inscricao;
 import com.senac.eventos.model.Participante;
+import com.senac.eventos.model.Usuario;
 import com.senac.eventos.repository.EventoRepository;
 import com.senac.eventos.repository.InscricaoRepository;
 import com.senac.eventos.repository.ParticipanteRepository;
+import com.senac.eventos.repository.UsuarioRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -28,6 +31,26 @@ class ServiceAuditTest {
 
     @Mock
     private ParticipanteRepository participanteRepository;
+
+    @Mock
+    private UsuarioRepository usuarioRepository;
+
+    @Test
+    void deveAutenticarUsuarioComSenhaValida() {
+        UsuarioService service = new UsuarioService(usuarioRepository);
+        Usuario usuario = new Usuario();
+        usuario.setNome("Ana");
+        usuario.setEmail("ana@email.com");
+        usuario.setSenha(new BCryptPasswordEncoder().encode("123456"));
+        usuario.setPerfil("ADMIN");
+
+        when(usuarioRepository.findByEmailIgnoreCase("ana@email.com")).thenReturn(Optional.of(usuario));
+
+        Usuario autenticado = service.login("ana@email.com", "123456");
+
+        assertEquals("Ana", autenticado.getNome());
+        assertEquals("ana@email.com", autenticado.getEmail());
+    }
 
     @Test
     void deveMarcarEventoComoEncerradoQuandoADataJaPassou() {
