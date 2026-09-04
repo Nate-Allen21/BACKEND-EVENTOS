@@ -57,6 +57,31 @@ public class InscricaoService {
         return salva;
     }
 
+    public Inscricao checkIn(Long id) {
+        Inscricao inscricao = inscricaoRepository.findById(id).orElseThrow(
+            () -> new IllegalArgumentException("Inscrição não encontrada: " + id)
+        );
+
+        if (inscricao.getStatus() == StatusInscricao.CANCELADA) {
+            throw new IllegalStateException("Não é possível fazer check-in de inscrição cancelada");
+        }
+
+        if (Boolean.TRUE.equals(inscricao.isPresente())) {
+            return inscricao;
+        }
+
+        inscricao.setPresente(true);
+        inscricao.setDataCheckin(LocalDateTime.now());
+        inscricao.setStatus(StatusInscricao.PRESENTE);
+        return inscricaoRepository.save(inscricao);
+    }
+
+    public long contarPresentesPorEvento(Long eventoId) {
+        return inscricaoRepository.findByEventoId(eventoId).stream()
+            .filter(inscricao -> Boolean.TRUE.equals(inscricao.isPresente()))
+            .count();
+    }
+
     public void cancelar(Long id) {
         Inscricao inscricao = inscricaoRepository.findById(id).orElseThrow(
             () -> new IllegalArgumentException("Inscrição não encontrada: " + id)
@@ -67,6 +92,8 @@ public class InscricaoService {
         }
 
         inscricao.setStatus(StatusInscricao.CANCELADA);
+        inscricao.setPresente(false);
+        inscricao.setDataCheckin(null);
         inscricaoRepository.save(inscricao);
 
         Evento evento = eventoRepository.findById(inscricao.getEventoId()).orElse(null);

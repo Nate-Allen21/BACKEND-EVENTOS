@@ -3,6 +3,7 @@ package com.senac.eventos.service;
 import com.senac.eventos.model.Evento;
 import com.senac.eventos.model.Inscricao;
 import com.senac.eventos.model.Participante;
+import com.senac.eventos.model.StatusInscricao;
 import com.senac.eventos.model.Usuario;
 import com.senac.eventos.repository.EventoRepository;
 import com.senac.eventos.repository.InscricaoRepository;
@@ -50,6 +51,23 @@ class ServiceAuditTest {
 
         assertEquals("Ana", autenticado.getNome());
         assertEquals("ana@email.com", autenticado.getEmail());
+    }
+
+    @Test
+    void deveMarcarInscricaoComoPresenteAoFazerCheckIn() {
+        InscricaoService service = new InscricaoService(inscricaoRepository, eventoRepository);
+        Inscricao inscricao = new Inscricao();
+        inscricao.setId(10L);
+        inscricao.setStatus(StatusInscricao.CONFIRMADA);
+        inscricao.setPresente(false);
+
+        when(inscricaoRepository.findById(10L)).thenReturn(Optional.of(inscricao));
+        when(inscricaoRepository.save(inscricao)).thenReturn(inscricao);
+
+        Inscricao presente = service.checkIn(10L);
+
+        assertTrue(presente.isPresente());
+        assertEquals(StatusInscricao.PRESENTE, presente.getStatus());
     }
 
     @Test

@@ -20,6 +20,10 @@ public class Inscricao {
     @Enumerated(EnumType.STRING)
     private StatusInscricao status;
 
+    private boolean presente;
+
+    private LocalDateTime dataCheckin;
+
     public Inscricao() {}
 
     public Long getId() { return id; }
@@ -32,4 +36,8 @@ public class Inscricao {
     public void setDataInscricao(LocalDateTime dataInscricao) { this.dataInscricao = dataInscricao; }
     public StatusInscricao getStatus() { return status; }
     public void setStatus(StatusInscricao status) { this.status = status; }
+    public boolean isPresente() { return presente; }
+    public void setPresente(boolean presente) { this.presente = presente; }
+    public LocalDateTime getDataCheckin() { return dataCheckin; }
+    public void setDataCheckin(LocalDateTime dataCheckin) { this.dataCheckin = dataCheckin; }
 }
